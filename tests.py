@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
+from conftest import Author
 from django_factories import Factory, SubFactory
-from conftest import Author, Book
 
 
 def test_factory_repr():
