@@ -2,6 +2,8 @@ from collections import defaultdict
 
 from django.db.models.fields.related import ForeignKey
 
+__version__ = "0.1.1"
+
 
 class SubFactory:
     """Marker class for invoking a factory function."""
@@ -22,13 +24,17 @@ class Factory:
         Factory(Model)(request)
     """
 
-    def __init__(self, model, defaults=None):
+    def __init__(self, model, **defaults):
         assert model
         self.model = model
-        self.defaults = defaults or {}
+        self.defaults = defaults
 
     def __repr__(self):
-        defaults = self.defaults and f", {self.defaults}" or ""
+        defaults = ", ".join(
+            [f"{key}={value!r}" for key, value in self.defaults.items()]
+        )
+        if defaults:
+            defaults = ", " + defaults
         return f"Factory({self.model.__name__}{defaults})"
 
     def __call__(self, request):

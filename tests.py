@@ -6,12 +6,7 @@ from django_factories import Factory, SubFactory
 
 def test_factory_repr():
     assert repr(Factory(Author)) == "Factory(Author)"
-    assert repr(Factory(Author, {})) == "Factory(Author)"
-    assert repr(Factory(Author, defaults={})) == "Factory(Author)"
-    assert (
-        repr(Factory(Author, defaults={"name": "foo"}))
-        == "Factory(Author, {'name': 'foo'})"
-    )
+    assert repr(Factory(Author, name="foo")) == "Factory(Author, name='foo')"
 
 
 def test_subfactory_repr():

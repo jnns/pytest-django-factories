@@ -53,7 +53,7 @@ def author_factory(request):
         "last_name": "Watterson",
         "birthdate": "1958-07-05",
     }
-    return Factory(Author, defaults)(request)
+    return Factory(Author, **defaults)(request)
 ```
 
 ## Related objects
@@ -86,8 +86,10 @@ If you have a fixture that you named differently (or you have multiple fixtures 
 ```python
 @pytest.fixture
 def book_factory(request):
-    defaults = {"author": SubFactory("my_author_fixture")}
-    return Factory(Book, defaults)(request)
+    return Factory(
+        Book, 
+        author=SubFactory("my_author_fixture")
+    )(request)
 ```
 
 Passing object instances as keyword arguments instead works as well, of course:

@@ -49,13 +49,13 @@ class ModelB(models.Model):
 
 @pytest.fixture
 def author_factory(request):
-    factory = Factory(Author, {"name": "Default Author"})
+    factory = Factory(Author, name="Default Author")
     return factory(request)
 
 
 @pytest.fixture
 def book_factory(request):
-    return Factory(Book, {"title": "Default Title"})(request)
+    return Factory(Book, title="Default Title")(request)
 
 
 @pytest.fixture
