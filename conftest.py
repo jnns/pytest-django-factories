@@ -67,3 +67,19 @@ def chapter_factory(request):
 def model_b_factory(request):
     """Please note that a factory function for ModelA is missing intentionally."""
     return Factory(ModelB)(request)
+
+
+@pytest.fixture
+def enumerated_book_factory(request):
+    books = []
+
+    class BookFactory(Factory):
+        model = Book
+
+        def create(self, **kwargs):
+            book_number = len(books) + 1
+            obj = super().create(**kwargs, title=f"Book {book_number}")
+            books.append(obj)
+            return obj
+
+    return BookFactory()(request)

@@ -66,3 +66,8 @@ def test_no_error_due_to_auto_factory(model_b_factory):
     from conftest import ModelA
 
     model_b_factory(model_a=ModelA())
+
+
+def test_customized_factory(enumerated_book_factory):
+    enumerated_book_factory()
+    assert enumerated_book_factory().title == "Book 2"

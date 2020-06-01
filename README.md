@@ -109,6 +109,27 @@ You can use `Factory` to instantiate objects in memory and also to create them i
 If your test function is [marked to use the database](https://pytest-django.readthedocs.io/en/latest/helpers.html#pytest-mark-django-db-request-database-access), the objects will be saved to the database.
 Unmarked tests will only create objects in memory.
 
+## Customizing a factory
+
+The `Factory` can be subclassed and you can override its `create(**kwargs)` method to customize how objects are instantiated. Here's an example of an auto-enumerating factory for a Book model:
+
+```python
+@pytest.fixture
+def book_factory(request):
+    books = []
+
+    class BookFactory(Factory):
+        model = Book
+
+        def create(self, **kwargs):
+            book_number = len(books) + 1
+            obj = super().create(**kwargs, title=f"Book {book_number}")
+            books.append(obj)
+            return obj
+
+    return BookFactory()(request)
+```
+
 # Installation 
 
 ```bash

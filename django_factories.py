@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.db.models.fields.related import ForeignKey
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 
 class SubFactory:
@@ -24,9 +24,10 @@ class Factory:
         Factory(Model)(request)
     """
 
-    def __init__(self, model, **defaults):
-        assert model
-        self.model = model
+    def __init__(self, _model=None, **defaults):
+        if _model:
+            self.model = _model
+        assert self.model
         self.defaults = defaults
 
     def __repr__(self):
