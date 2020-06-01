@@ -149,3 +149,12 @@ pip install -r requirements.txt
 pytest
 ```
 
+# Similar projects
+
+When I wrote this library, I needed a quick and easy way to create related objects using Pytest fixtures. 
+I didn't know about [pytest-factoryboy](https://github.com/pytest-dev/pytest-factoryboy),
+which allows registering the powerful factories from [factory_boy](https://factoryboy.readthedocs.io/) 
+for Pytest's fixture dependency injection.  
+
+Basically, *pytest-django-factories* is a less-feature-packed combination of both *factory_boy* and 
+*pytest-factoryboy* that will hopefully help you get going quickly. 
