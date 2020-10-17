@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.db.models.fields.related import ForeignKey
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 
 class SubFactory:
