@@ -94,4 +94,6 @@ class Factory:
             if factory:
                 if isinstance(value, SubFactory):
                     value = {}
+                elif not isinstance(value, dict):
+                    continue
                 kwargs[key] = factory(**value)

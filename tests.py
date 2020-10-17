@@ -30,6 +30,11 @@ def test_custom_author(book_factory):
     assert book.author.name == "Someone else"
 
 
+def test_custom_author_as_object(book_factory):
+    book = book_factory(author=Author(name="Someone else"))
+    assert book.author.name == "Someone else"
+
+
 def test_nested_relationship(chapter_factory):
     assert (
         chapter_factory(book__author__name="Someone else").book.author.name
