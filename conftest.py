@@ -1,3 +1,5 @@
+from itertools import count
+
 import django
 import pytest
 from django.conf import settings
@@ -71,15 +73,12 @@ def model_b_factory(request):
 
 @pytest.fixture
 def enumerated_book_factory(request):
-    books = []
+    counter = count(1)
 
     class BookFactory(Factory):
         model = Book
 
         def create(self, **kwargs):
-            book_number = len(books) + 1
-            obj = super().create(**kwargs, title=f"Book {book_number}")
-            books.append(obj)
-            return obj
+            return super().create(**kwargs, title=f"Book {next(counter)}")
 
     return BookFactory()(request)
