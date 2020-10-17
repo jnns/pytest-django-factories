@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+
 from conftest import Author
 from django_factories import Factory, SubFactory
 
@@ -12,6 +14,17 @@ def test_factory_repr():
 def test_subfactory_repr():
     assert repr(SubFactory()) == "SubFactory()"
     assert repr(SubFactory("author_factory")) == 'SubFactory("author_factory")'
+
+
+def test_subfactory_repr_custom(chapter_factory, watterson_book_factory):
+    assert (
+        str(chapter_factory.__self__)
+        == 'Factory(Chapter, book=SubFactory("book_factory"))'
+    )
+    assert (
+        str(watterson_book_factory.__self__)
+        == 'Factory(Book, author=SubFactory("watterson_author_factory"))'
+    )
 
 
 def test_book_factory(book_factory):
@@ -65,6 +78,27 @@ def test_run_factories_defaults_only(book_factory):
     kwargs = {"author": SubFactory()}
     book_factory.__self__.run_subfactories(kwargs)
     assert str(kwargs) == "{'author': <Author: Default Author>}"
+
+
+def test_named_fixture_as_default(watterson_book_factory):
+    book = watterson_book_factory()
+    assert book.author.name == "Bill Watterson"
+
+
+def test_no_callable_as_subfactory_arg(caplog, broken_factory):
+    with pytest.raises(TypeError):
+        broken_factory()
+    assert "Is the SubFactory function callable?" in caplog.records[0].msg
+
+
+def test_custom_subfactory(watterson_book_factory):
+    book = watterson_book_factory()
+    assert book.author.name == "Bill Watterson"
+
+
+def test_named_fixture_overridden(watterson_book_factory):
+    book = watterson_book_factory(author__name="Not Bill Watterson")
+    assert book.author.name == "Not Bill Watterson"
 
 
 def test_no_error_due_to_auto_factory(model_b_factory):

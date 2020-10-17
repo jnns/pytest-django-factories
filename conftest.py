@@ -5,7 +5,7 @@ import pytest
 from django.conf import settings
 from django.db import models
 
-from django_factories import Factory
+from django_factories import Factory, SubFactory
 
 settings.configure(DEBUG=False)
 django.setup()
@@ -58,6 +58,27 @@ def author_factory(request):
 @pytest.fixture
 def book_factory(request):
     return Factory(Book, title="Default Title")(request)
+
+
+@pytest.fixture
+def watterson_author_factory(request):
+    return Factory(Author, name="Bill Watterson")(request)
+
+
+@pytest.fixture
+def bill_watterson(author_factory):
+    return author_factory(name="Bill Watterson")
+
+
+@pytest.fixture
+def watterson_book_factory(request, watterson_author_factory):
+    """This factory builds objects with "Bill Watterson" as default author."""
+    return Factory(Book, author=SubFactory("watterson_author_factory"))(request)
+
+
+@pytest.fixture
+def broken_factory(request):
+    return Factory(Book, author=SubFactory("bill_watterson"))(request)
 
 
 @pytest.fixture

@@ -1,8 +1,10 @@
+import logging
 from collections import defaultdict
 
 from django.db.models.fields.related import ForeignKey
 
 __version__ = "0.2.1"
+logger = logging.getLogger(__name__)
 
 
 class SubFactory:
@@ -46,17 +48,21 @@ class Factory:
 
     def init_auto_factories(self):
         """Set default value for ForeignKey fields to a SubFactory."""
+        foreign_key_fields = set(
+            [f.name for f in self.model._meta.fields if isinstance(f, ForeignKey)]
+        )
 
-        foreign_key_fields = [
-            f.name for f in self.model._meta.fields if isinstance(f, ForeignKey)
-        ]
+        # Don't set up a factory if a default has been specified manually.
+        foreign_key_fields -= set(self.defaults)
+
         for field in foreign_key_fields:
+            fixture_name = f"{field}_factory"
             try:
-                self.request.getfixturevalue(f"{field}_factory")
+                self.request.getfixturevalue(fixture_name)
             except LookupError:
                 pass
             else:
-                self.defaults[field] = SubFactory()
+                self.defaults[field] = SubFactory(fixture_name)
 
     def create(self, **kwargs):
         """Factory function to be returned when factory object is called."""
@@ -96,4 +102,11 @@ class Factory:
                     value = {}
                 elif not isinstance(value, dict):
                     continue
-                kwargs[key] = factory(**value)
+
+                try:
+                    produce = factory(**value)
+                except TypeError:
+                    logger.error("Is the SubFactory function callable?")
+                    raise
+                else:
+                    kwargs[key] = produce
