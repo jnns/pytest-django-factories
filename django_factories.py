@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 
-from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related import ForeignKey, OneToOneField
 
 __version__ = "0.2.2"
 logger = logging.getLogger(__name__)
@@ -48,14 +48,20 @@ class Factory:
 
     def init_auto_factories(self):
         """Set default value for ForeignKey fields to a SubFactory."""
-        foreign_key_fields = set(
-            [f.name for f in self.model._meta.fields if isinstance(f, ForeignKey)]
+        fields_to_use_subfactory = (
+            ForeignKey,
+            OneToOneField,
         )
+        related_obj_fields = {
+            f.name
+            for f in self.model._meta.fields
+            if isinstance(f, fields_to_use_subfactory)
+        }
 
         # Don't set up a factory if a default has been specified manually.
-        foreign_key_fields -= set(self.defaults)
+        related_obj_fields -= set(self.defaults)
 
-        for field in foreign_key_fields:
+        for field in related_obj_fields:
             fixture_name = f"{field}_factory"
             try:
                 self.request.getfixturevalue(fixture_name)
