@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from django.db.models.fields.related import ForeignKey, OneToOneField
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 logger = logging.getLogger(__name__)
 
 
