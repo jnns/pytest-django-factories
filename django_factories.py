@@ -3,7 +3,7 @@ from typing import Callable
 
 from django.db.models.fields.related import ForeignKey, OneToOneField
 
-__version__ = "0.2.3"
+__version__ = "0.2.4"
 logger = logging.getLogger(__name__)
 
 
