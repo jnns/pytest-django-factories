@@ -62,22 +62,34 @@ def test_create_instance(mocked_create, author_factory):
     assert mocked_create.called
 
 
-def test_transform_dunder_keys(book_factory):
-    kwargs = {"author__name": "Someone else", "author__age": 57, "foo": "bar"}
-    book_factory.__self__.transform_dunder_keys(kwargs)
-    assert kwargs == {"author": {"name": "Someone else", "age": 57}, "foo": "bar"}
+def test_non_model_fields(book_factory):
+    with pytest.raises(TypeError) as e:
+        book_factory(author__name="Someone else", author__age=57, foo="bar")
+    assert "unexpected keyword argument 'foo'" in str(e.value)
+
+
+def test_subfactory_kwargs_without_subfactory(book_factory, caplog):
+    author = Author(name="David Foster Wallace")
+    with pytest.raises(TypeError) as e:
+        book_factory(author=author, author__name="Someone else")
+    assert "unexpected keyword argument 'author__name'" in str(e.value)
+
+
+def test_mixing_subfactory_with_kwarg(book_factory, caplog):
+    kwargs = {"author": SubFactory(), "author__name": "Someone else"}
+    book = book_factory(**kwargs)
+    assert book.author.name == "Someone else"
 
 
 def test_run_factories(book_factory):
-    kwargs = {"author": {"name": "Someone else"}}
-    book_factory.__self__.run_subfactories(kwargs)
-    assert str(kwargs) == "{'author': <Author: Someone else>}"
+    book = book_factory(author__name="Someone else")
+    assert repr(book.author) == "<Author: Someone else>"
 
 
 def test_run_factories_defaults_only(book_factory):
     kwargs = {"author": SubFactory()}
-    book_factory.__self__.run_subfactories(kwargs)
-    assert str(kwargs) == "{'author': <Author: Default Author>}"
+    result = book_factory.__self__.run_subfactories(kwargs)
+    assert str(result) == "{'author': <Author: Default Author>}"
 
 
 def test_named_fixture_as_default(watterson_book_factory):

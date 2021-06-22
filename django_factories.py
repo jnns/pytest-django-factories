@@ -1,5 +1,5 @@
 import logging
-from collections import defaultdict
+from typing import Callable
 
 from django.db.models.fields.related import ForeignKey, OneToOneField
 
@@ -73,46 +73,46 @@ class Factory:
     def create(self, **kwargs):
         """Factory function to be returned when factory object is called."""
         kwargs = {**self.defaults, **kwargs}
-        self.transform_dunder_keys(kwargs)
-        self.run_subfactories(kwargs)
+        kwargs = self.run_subfactories(kwargs)
         return self.create_instance(**kwargs)
+
+    def run_subfactories(self, kwargs: dict) -> dict:
+        """Transform dunder keywords into object instances."""
+        subfactories = [k for k, v in kwargs.items() if isinstance(v, SubFactory)]
+        for related_field in subfactories:
+            kwargs.update(self.run_subfactory(related_field, kwargs))
+        return kwargs
+
+    def run_subfactory(self, related_field: str, kwargs: dict) -> dict:
+        factory = self.get_factory(related_field)
+        factory_kwargs = self.get_subfactory_kwargs(related_field, kwargs)
+
+        for k in factory_kwargs:
+            kwargs.pop(k)
+
+        try:
+            factory_kwargs = {
+                k.split("__", maxsplit=1)[1]: v for k, v in factory_kwargs.items()
+            }
+            kwargs[related_field] = factory(**factory_kwargs)
+        except TypeError:
+            logger.error("Is the SubFactory function callable?")
+            raise
+
+        return kwargs
+
+    def get_subfactory_kwargs(self, related_field, kwargs):
+        """Return keyword arguments for given related field."""
+        return {k: v for k, v in kwargs.items() if k.startswith(f"{related_field}__")}
+
+    def get_factory(self, key) -> Callable:
+        """Return factory function for given model if available in defaults."""
+        factory = self.defaults.get(key)
+        factory_function_name = factory.factory_func or f"{key}_factory"
+        return self.request.getfixturevalue(factory_function_name)
 
     def create_instance(self, **kwargs):
         """Persist instance to database or just create in memory."""
         if self.use_db:
             return self.model._default_manager.create(**kwargs)
         return self.model(**kwargs)
-
-    def transform_dunder_keys(self, kwargs):
-        """Merge double-underscore keys into a single dictionary key."""
-        related_obj_kwargs = defaultdict(dict)
-        for dunder_key in [key for key in kwargs if "__" in key]:
-            model, model_attr = dunder_key.split("__", maxsplit=1)
-            if self.get_factory(model) and model_attr:
-                model_value = kwargs.pop(dunder_key)
-                related_obj_kwargs[model][model_attr] = model_value
-        kwargs.update(related_obj_kwargs)
-
-    def get_factory(self, key):
-        """Return factory function for given model if available in defaults."""
-        value = self.defaults.get(key)
-        if isinstance(value, SubFactory):
-            factory_function_name = value.factory_func or f"{key}_factory"
-            return self.request.getfixturevalue(factory_function_name)
-
-    def run_subfactories(self, kwargs):
-        for key, value in kwargs.items():
-            factory = self.get_factory(key)
-            if factory:
-                if isinstance(value, SubFactory):
-                    value = {}
-                elif not isinstance(value, dict):
-                    continue
-
-                try:
-                    produce = factory(**value)
-                except TypeError:
-                    logger.error("Is the SubFactory function callable?")
-                    raise
-                else:
-                    kwargs[key] = produce

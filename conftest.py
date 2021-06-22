@@ -13,6 +13,7 @@ django.setup()
 
 class Author(models.Model):
     name = models.CharField(max_length=255)
+    age = models.PositiveSmallIntegerField()
 
     class Meta:
         app_label = "dummy_app"
